@@ -47,8 +47,6 @@ namespace SimpleWhiteboard.Whiteboard {
         }
         isSavingBoard = true;
 
-        alert('Yes');
-
         try {
             forVisibleEditors((cm) => {
                 const PARSER = createMarkdownParser();
@@ -165,7 +163,6 @@ namespace SimpleWhiteboard.Whiteboard {
 
                     case 's':
                         action = () => saveBoard();
-                        alert('anmkamk');
                         break;
                 }
             }
