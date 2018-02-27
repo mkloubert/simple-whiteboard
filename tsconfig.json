@@ -6,6 +6,7 @@
         "sourceMap": true
     },
     "include": [
-        "js/*.ts"
+        "js/*.ts",
+        "js/modules/**/*.ts"
     ]
 }

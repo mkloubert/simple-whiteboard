@@ -13,16 +13,68 @@
 
 /// <reference path="../ts/bootstrap.d.ts" />
 /// <reference path="../ts/jquery.d.ts" />
+/// <reference path="../ts/showdown.d.ts" />
 
 namespace SimpleWhiteboard {
+    export type OnLoadedCallback = () => void;
+
+    /**
+     * An app instance.
+     */
     export class App {
+        private _onLoaded: OnLoadedCallback[];
+
+        /**
+         * Stores the current app.
+         */
+        public static current: App;
+
+        /**
+         * Adds an 'on loaded' callback.
+         * 
+         * @param {OnLoadedCallback} callback The callback to add.
+         * 
+         * @return this
+         * 
+         * @chainable
+         */
+        public addOnLoaded(callback: OnLoadedCallback): this {
+            this._onLoaded
+                .push(callback);
+
+            return this;
+        }
+
+        /**
+         * Initializes the app.
+         */
         public init() {
-
+            this._onLoaded = [];
         }
 
+        /**
+         * Runs the app.
+         */
         public run() {
-
+            this._onLoaded.forEach(cb => {
+                cb();
+            });
         }
+    }
+
+    /**
+     * Creates a new Markdown parser.
+     * 
+     * @return {showdown.Converter} The new parser.
+     */
+    export function createMarkdownParser() {
+        return new showdown.Converter({
+            ghCodeBlocks: true,
+            ghCompatibleHeaderId: true,
+            simplifiedAutoLink: true,
+            strikethrough: true,
+            tables: true
+        });
     }
 }
 

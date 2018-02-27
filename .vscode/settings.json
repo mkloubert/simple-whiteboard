@@ -1,5 +1,8 @@
 {
     "deploy.reloaded": {
+        "runBuildTaskOnStartup": true,
+        "timeToWaitBeforeActivateDeployOnChange": 20000,
+
         "imports": [
             "./simple-whitboard.json"
         ],
@@ -14,7 +17,8 @@
                 "name": "PHP files",
                 
                 "files": [
-                    "**/*.php"
+                    "/*.php",
+                    "/modules/**/*.php"
                 ],
 
                 "deployOnSave": true,

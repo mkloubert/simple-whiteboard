@@ -1,4 +1,7 @@
 /js/**/*.map
+/js/modules/**/*.js
 /js/script.js
 /pushall.sh
+/css/modules/**/*.css
 /css/style.css
+/css/whiteboard.css

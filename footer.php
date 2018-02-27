@@ -23,8 +23,36 @@ defined('SW_INDEX') or die();
             </div>
         </nav>
 
+        <?php
+
+// module's CSS file
+$cssFile = @realpath(SW_DIR_CSS . 'modules/' . $app['module'] . '.css');
+if (@is_file($cssFile)) {
+    ?>
+
+<link rel="stylesheet" href="./css/modules/<?= htmlspecialchars($app['module']) ?>.css">
+
+    <?php
+}
+
+// module's JavaScript file
+$jsFile = @realpath(SW_DIR_JAVASCRIPT . 'modules/' . $app['module'] . '.js');
+if (@is_file($jsFile)) {
+    ?>
+
+<script src="./js/modules/<?= htmlspecialchars($app['module']) ?>.js"></script>
+
+    <?php
+}
+
+        ?>
+
         <script type="text/javascript">
-            $SWB.run();
+            jQuery(function() {
+                SimpleWhiteboard.App.current = $SWB;
+
+                $SWB.run();
+            });            
         </script>
     </body>
 </html>

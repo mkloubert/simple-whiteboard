@@ -19,7 +19,7 @@ define('SW_INDEX', 1);
 
 require_once './bootstrap.php';
 
-$module = trim(strtolower(@$_REQUEST['b']));
+$module = trim(strtolower(@$_REQUEST['m']));
 if ('' === $module) {
     $module = 'whiteboard';
 }
@@ -42,6 +42,9 @@ if (0 !== strpos($moduleFile, $moduleDir . DIRECTORY_SEPARATOR)) {
 }
 
 $app = [
+    'config' => $SW_CONFIG,
+    'headers' => array(),
+    'module' => $module,
     'moduleResult' => true,
     'showHeader' => true,
     'showFooter' => true,
@@ -63,6 +66,12 @@ $header = sw_executed_buffered(function() use (&$app) {
 $footer = sw_executed_buffered(function() use (&$app) {
     require __DIR__ . '/footer.php';
 });
+
+if (!empty($app['headers'])) {
+    foreach ($app['headers'] as $httpKey => $httpValue) {
+        header($httpKey . ': ' . $httpValue, true);
+    }
+}
 
 if ($app['showHeader']) {
     echo $header;
