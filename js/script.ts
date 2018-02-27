@@ -11,6 +11,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// <reference path="../ts/bootstrap.d.ts" />
+/// <reference path="../ts/jquery.d.ts" />
+
 namespace SimpleWhiteboard {
     export class App {
         public init() {
