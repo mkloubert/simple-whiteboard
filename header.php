@@ -38,7 +38,7 @@ defined('SW_INDEX') or die();
   </head>
 
   <body>
-    <nav class="navbar navbar-default navbar-fixed-top">
+    <nav class="navbar navbar-primary navbar-fixed-top" id="sw-header">
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#sw-navbar-top-collapse" aria-expanded="false">
@@ -47,7 +47,7 @@ defined('SW_INDEX') or die();
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Simple Whiteboard</a>
+          <a class="navbar-brand" href="https://github.com/mkloubert/simple-whiteboard" target="_blank">Simple Whiteboard</a>
         </div>
 
         <div class="collapse navbar-collapse" id="sw-navbar-top-collapse">

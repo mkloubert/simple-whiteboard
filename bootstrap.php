@@ -15,16 +15,27 @@
 
 defined('SW_INDEX') or die();
 
-?>
+define('SW_DIR_ROOT', __DIR__ . '/');
+define('SW_DIR_MODULES', SW_DIR_ROOT . 'modules/');
 
-        <nav class="navbar navbar-default navbar-fixed-bottom" id="sw-footer">
-            <div class="container">
-                Copyright &copy; <?= date('Y') ?> <a href="https://github.com/mkloubert" target="_blank">Marcel Joachim Kloubert</a>
-            </div>
-        </nav>
+/**
+ * Executes an action buffered.
+ * 
+ * @param callable $action The action to invoke.
+ * @param mixed &$result|false (optional) The variable where the result of the action is written to.
+ *                                        If (false) a 404 error will be send to the client.
+ * 
+ * @return string The buffered output of the action.
+ */
+function sw_executed_buffered(callable $action, &$result = null) {
+    ob_start();
+    try {
+        $result = call_user_func($action);
+    }
+    finally {
+        $content = ob_get_contents();
+        ob_end_clean();
+    }
 
-        <script type="text/javascript">
-            $SWB.run();
-        </script>
-    </body>
-</html>
+    return $content;
+}

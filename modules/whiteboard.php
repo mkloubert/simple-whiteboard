@@ -15,16 +15,4 @@
 
 defined('SW_INDEX') or die();
 
-?>
-
-        <nav class="navbar navbar-default navbar-fixed-bottom" id="sw-footer">
-            <div class="container">
-                Copyright &copy; <?= date('Y') ?> <a href="https://github.com/mkloubert" target="_blank">Marcel Joachim Kloubert</a>
-            </div>
-        </nav>
-
-        <script type="text/javascript">
-            $SWB.run();
-        </script>
-    </body>
-</html>
+echo 'Hello, Whiteboard!';
