@@ -1,0 +1,96 @@
+{
+    "deploy.reloaded": {
+        "imports": [
+            "./simple-whitboard.json"
+        ],
+
+        "ignore": [
+            "js/**/*.ts",
+            "ts/**/*"
+        ],
+
+        "packages": [
+            {
+                "name": "PHP files",
+                
+                "files": [
+                    "**/*.php"
+                ],
+
+                "deployOnSave": true,
+
+                "targets": [ "Server switch" ]
+            },
+
+            {
+                "name": "LESS-Dateien",
+                "isHidden": true,
+
+                "files": [
+                    "/css/**/*.less"
+                ],
+
+                "deployOnSave": true,
+
+                "targets": [ "LESS-Compiler" ]
+            },
+
+            {
+                "name": "JavaScript files",
+                
+                "files": [
+                    "js/**/*.js"
+                ],
+
+                "deployOnChange": true,
+
+                "targets": [ "Server switch" ]
+            },
+
+            {
+                "name": "CSS files",
+                
+                "files": [
+                    "css/**/*.css"
+                ],
+
+                "deployOnChange": true,
+
+                "targets": [ "Server switch" ]
+            }
+        ],
+
+        "targets": [
+            {
+                "name": "Server switch",
+                "type": "switch",
+
+                "button": {
+                    "text": "Deploy to '${switchOption}'",
+                },
+
+                "options": [
+                    {
+                        "name": "Dev",                        
+                        "targets": [ "Dev server" ]
+                    }
+                ]
+            },
+
+            {
+                "name": "LESS-Compiler",
+                "type": "compiler",
+                
+                "compiler": "less",
+
+                "showIf": [ "LESS-Dateien" ],
+
+                "options": {
+                    "compress": true
+                }
+            }
+        ],
+
+        "initComposer": true
+    }
+}
