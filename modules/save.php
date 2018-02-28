@@ -22,6 +22,9 @@ if ('POST' !== $_SERVER['REQUEST_METHOD']) {
 
 $board_id = 1;  //TODO
 
+$code = 0;
+$data = null;
+
 $content = (string)@$_POST['c'];
 if (strlen($content) > 16777215) {
     $content = substr($content, 0, 16777215);
@@ -52,12 +55,29 @@ try {
         $ip = null;
     }
 
-    $stmt = $db->prepare("INSERT INTO `content` (`board_id`,`content`,`notes`,`user`,`ip`) VALUES (?,?,?,?,?);");
+    $latestContent = false;
+    {
+        $currentVersion = sw_current_version($board_id);
+        if (!empty($currentVersion)) {
+            $latestContent = $currentVersion['content'];
+        }
+    }
 
-    $stmt->bind_param('issss',
-                      $board_id, $content, $notes, $user, $ip);
-    $stmt->execute();
-
+    if ($latestContent !== $content) {
+        $stmt = $db->prepare("INSERT INTO `content` (`board_id`,`content`,`notes`,`user`,`ip`) VALUES (?,?,?,?,?);");
+        try {
+            $stmt->bind_param('issss',
+                              $board_id, $content, $notes, $user, $ip);
+            $stmt->execute();
+        }
+        finally {
+            $stmt->close();
+        }    
+    }
+    else {
+        $code = 1;  // no need to save
+    }
+    
     $db->commit();
 }
 catch (\Exception $ex) {
@@ -65,8 +85,5 @@ catch (\Exception $ex) {
 
     throw $ex;
 }
-finally {
-    $stmt->close();
-}
 
-sw_send_json_result();
+sw_send_json_result($code, $data);

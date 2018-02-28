@@ -17,12 +17,6 @@ defined('SW_INDEX') or die();
 
 ?>
 
-<link rel="stylesheet" href="./css/codemirror/codemirror.css">
-
-<script src="./js/codemirror/codemirror.js"></script>
-<script src="./js/codemirror/addon/display/autorefresh.js"></script>
-<script src="./js/codemirror/mode/markdown/markdown.js"></script>
-
 <div class="row sw-whiteboard">
     <div class="col-md-9">
         <ul class="nav nav-tabs">

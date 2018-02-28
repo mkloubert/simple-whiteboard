@@ -23,17 +23,23 @@ defined('SW_INDEX') or die();
 
     <link rel="stylesheet" href="./css/font-awesome.min.css">
     <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/highlight/monokai-sublime.css">
+    <link rel="stylesheet" href="./css/codemirror/codemirror.css">
     <link rel="stylesheet" href="./css/style.css">
 
     <!--[if lt IE 9]>
       <script src="./js/html5shiv.min.js"></script>
       <script src="./js/respond.min.js"></script>
     <![endif]-->
-
-    <script src="./js/lodash.min.js"></script>
+    
+    <script src="./js/lodash.min.js"></script>      
     <script src="./js/jquery.min.js"></script>
     <script src="./js/bootstrap.min.js"></script>
     <script src="./js/showdown.min.js"></script>
+    <script src="./js/highlight.pack.js"></script>
+    <script src="./js/codemirror/codemirror.js"></script>
+    <script src="./js/codemirror/addon/display/autorefresh.js"></script>
+    <script src="./js/codemirror/mode/markdown/markdown.js"></script>
     <script src="./js/script.js"></script>
 
     <title>Simple Whiteboard</title>

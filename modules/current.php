@@ -26,23 +26,7 @@ $board = 1;  //TODO
 
 $db = sw_db();
 
-$stmt = $db->prepare("SELECT `id`,`content`,`content_type`,`time` FROM `content` WHERE `board_id`=? ORDER BY `id` DESC,`time` DESC LIMIT 0,1;");
-try {
-    $stmt->bind_param('i', $board);
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-    try {
-        $currentVersion = $result->fetch_assoc();
-    }
-    finally {
-        $result->close();
-    }
-}
-finally {
-    $stmt->close();
-}
-
+$currentVersion = sw_current_version( $board );
 if (empty($currentVersion)) {
     sw_send_json_result(1);
 }
@@ -63,7 +47,7 @@ else {
         $result = $stmt->get_result();
         try {
             while ($row = $result->fetch_array()) {
-                $response[] = array(
+                $response['files'][] = array(
                     'id' => (int)$row[0],
                     'name' => $row[1],
                 );

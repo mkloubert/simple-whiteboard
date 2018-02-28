@@ -12,7 +12,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /// <reference path="../script.ts" />
-/// <reference path="../../ts/codemirror.d.ts" />
 
 namespace SimpleWhiteboard.Whiteboard {
     type ContentValue = IContent | false;
@@ -33,6 +32,7 @@ namespace SimpleWhiteboard.Whiteboard {
     interface IUploadResult {
         name: string;
         path: string;
+        type: string;
     }
 
     const BASE64_PREFIX = 'base64,';
@@ -43,6 +43,45 @@ namespace SimpleWhiteboard.Whiteboard {
     let isLoadCurrentVersion = false;
     let isSavingBoard = false;
     let isUpdatingFileList = false;
+
+    function insertTextFile(file: File) {
+        if (!file) {
+            return;
+        }
+
+        const DOC = editor.getDoc();
+        const CURSOR = DOC.getCursor();   
+
+        const TYPE = toStringSafe(file.type).toLowerCase().trim();
+
+        let codeLang: string | false = false;
+
+        const SUB_TYPE = TYPE.substr(5).trim();
+        switch (SUB_TYPE) {
+            case '':
+            case 'plain':
+                codeLang = '';
+                break;
+        }
+
+        if (false === codeLang) {
+            for (const EXT in FILE_EXTENSIONS_AND_LANGS) {
+                if (endsWith(file.name, '.' + EXT)) {
+                    codeLang = FILE_EXTENSIONS_AND_LANGS[ EXT ];
+                }
+            }
+        }
+
+        if (false === codeLang) {
+            codeLang = '';
+        }
+
+        readBlobAsText(file, (text) => {
+            const CODE_BLOCK = "```" + codeLang + "\n" + toStringSafe(text) + "\n```";
+
+            DOC.replaceRange("\n" + CODE_BLOCK + "\n", CURSOR);
+        });
+    }
 
     function isEditorDirty() {
         return lastSavedEditorContent !== editor.getValue();
@@ -179,7 +218,15 @@ namespace SimpleWhiteboard.Whiteboard {
                         NOTES_FIELD.val('');
                         reloadCurrent = true;
                         break;
+
+                    case 1:
+                        reloadCurrent = true;
+                        break;
                 }
+            },
+
+            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
+                addAlert(`Could not save board: '${ toStringSafe(errorThrown) }'`);
             },
 
             complete: () => {
@@ -273,6 +320,11 @@ namespace SimpleWhiteboard.Whiteboard {
                 TEMP.html(
                     createMarkdownParser().makeHtml( MD )
                 );
+                
+                // code blocks
+                TEMP.find('pre code').each(function(i, block) {
+                    hljs.highlightBlock(block);
+                });
                 
                 // no scripts
                 TEMP.find('script').remove();
@@ -381,7 +433,8 @@ namespace SimpleWhiteboard.Whiteboard {
 
         const EDITOR_OPTS: any = {
             dragDrop: true,
-            lineNumbers: false,
+            lineNumbers: true,
+            lineWrapping: true,
             mode: "text/x-markdown",
             autoRefresh: {
                 delay: 500
@@ -402,7 +455,19 @@ namespace SimpleWhiteboard.Whiteboard {
                 e.stopPropagation();
 
                 for (let i = 0; i < DROPPED_FILES.length; i++) {
-                    uploadAndInsertFile( DROPPED_FILES.item(i) );
+                    const DF = DROPPED_FILES.item( i );
+                    
+                    let type = toStringSafe( DF.type ).toLowerCase().trim();
+                    if ('' === type) {
+                        type = 'text/';
+                    }
+
+                    if (0 === type.indexOf('text/')) {
+                        insertTextFile( DF );
+                    }
+                    else {
+                        uploadAndInsertFile( DF );
+                    }
                 }
 
                 return false;

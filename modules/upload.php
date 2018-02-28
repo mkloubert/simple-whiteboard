@@ -68,8 +68,9 @@ else {
             else {
                 if (false !== @file_put_contents($file, $uploadedContent)) {
                     $data = array(
-                        'name' => basename($file),
+                        'name' => basename($file),                        
                         'path' => './uploads/' . urlencode(basename($file)),
+                        'type' => $type,
                     );
                 }
                 else {
