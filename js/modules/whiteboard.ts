@@ -19,7 +19,16 @@ namespace SimpleWhiteboard.Whiteboard {
         name: string;
     }
 
+    interface IContent {
+        id: number;
+        content?: string;
+        content_type?: string;
+        time: string;
+    }
+
     const EDITORS: CodeMirror.Editor[] = [];
+    let currentVersion: false | IContent;
+    let isLoadCurrentVersion = false;
     let isSavingBoard = false;
     let isUpdatingFileList = false;
 
@@ -37,6 +46,42 @@ namespace SimpleWhiteboard.Whiteboard {
                 if (CM) {
                     action(CM);
                 }
+            }
+        });
+    }
+
+    function loadCurrentVersion() {
+        if (isLoadCurrentVersion) {
+            return;
+        }
+
+        isLoadCurrentVersion = true;
+
+        jQuery.ajax({
+            url: '?m=current',
+
+            success: (result: JsonResult) => {
+                if (!result) {
+                    return;
+                }
+
+                let content: IContent | false = false;
+
+                switch (result.code) {
+                    case 0:
+                        content = result.data;
+                        break;
+
+                    case 1:
+                        content = null;
+                        break;                        
+                }
+
+                updateView(content);
+            },
+
+            complete: () => {
+                isLoadCurrentVersion = false;
             }
         });
     }
@@ -85,36 +130,31 @@ namespace SimpleWhiteboard.Whiteboard {
 
     }
 
-    function updateFileList() {
-        if (isUpdatingFileList) {
+    function updateView(content: IContent | false) {
+        if (false === content) {
             return;
         }
-        isUpdatingFileList = true;
 
-        const FILE_LISTS = jQuery('.sw-files');
-
-        jQuery.ajax({
-            url: '?m=files',
-            success: (result: IFile[]) => {
-                if (result && result.length > 0) {
-
-                }
-                else {
-                    FILE_LISTS.text('No files found.');
-                }
-            },
-            error: () => {
-
-            },
-            complete: () => {
-                isUpdatingFileList = false;
+        const CURRENT = currentVersion;
+        if (CURRENT && content) {
+            if (CURRENT.id == content.id) {
+                return;
             }
-        });
-    }
+        }
 
-    function updateView() {
-        updateBoard();
-        updateFileList();
+        try {
+            let md = (_.isNil(content) || _.isNil(content.content)) ? '' : content.content;
+
+            jQuery('.sw-board').html(
+                createMarkdownParser().makeHtml('' + md)
+            );
+            forVisibleEditors(cm => {
+                cm.setValue(md);
+            });
+        }
+        finally {
+            currentVersion = content;
+        }
     }
 
     $SWB.addOnLoaded(() => {
@@ -142,8 +182,14 @@ namespace SimpleWhiteboard.Whiteboard {
     });
 
     $SWB.addOnLoaded(() => {
-        jQuery('a[href="#sw-editor-1"], a[href="#sw-editor-2"]').on('shown.bs.tab', () => {
+        jQuery('a[href="#sw-editor-1"]').on('shown.bs.tab', () => {
             focusVisibleEditor();
+        });
+    });
+
+    $SWB.addOnLoaded(() => {
+        jQuery('.sw-save-btn').click(() => {
+            saveBoard();
         });
     });
 
@@ -175,12 +221,10 @@ namespace SimpleWhiteboard.Whiteboard {
     });
 
     $SWB.addOnLoaded(() => {
-        jQuery('.sw-save-btn').click(() => {
-            saveBoard();
-        });
-    });
+        loadCurrentVersion();
 
-    $SWB.addOnLoaded(() => {
-        updateView();
+        setInterval(() => {
+            loadCurrentVersion();
+        }, 2000);
     });
 }

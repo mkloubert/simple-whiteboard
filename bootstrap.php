@@ -51,6 +51,8 @@ function sw_db() {
             die(sprintf("Could not connect to MySQL database: [%s] '%s'",
                         $SW_DB->connect_errno, $SW_DB->connect_error));
         }
+
+        $SW_DB->set_charset('utf8');
     }
 
     return $SW_DB;
@@ -104,4 +106,17 @@ function sw_send_json($val, $noFrontend = true) {
     $app['headers']['Content-type'] = 'application/json; charset=utf8';
 
     echo json_encode($val);
+}
+
+/**
+ * Sends a result as JSON array.
+ * 
+ * @param int $code (optional) The code.
+ * @param mixed $data (optional) The data.
+ */
+function sw_send_json_result($code = 0, $data = null) {
+    sw_send_json(array(
+        'code' => $code,
+        'data' => $data,
+    ), true);
 }

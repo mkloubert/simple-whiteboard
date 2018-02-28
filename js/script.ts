@@ -13,9 +13,27 @@
 
 /// <reference path="../ts/bootstrap.d.ts" />
 /// <reference path="../ts/jquery.d.ts" />
+/// <reference path="../ts/lodash/index.d.ts" />
 /// <reference path="../ts/showdown.d.ts" />
 
 namespace SimpleWhiteboard {
+    /**
+     * A JSON result.
+     */
+    export interface JsonResult<TData = any> {
+        /**
+         * The code.
+         */
+        code?: number;
+        /**
+         * The data.
+         */
+        data?: TData;
+    }
+
+    /**
+     * Describes an 'on loaded' callback.
+     */
     export type OnLoadedCallback = () => void;
 
     /**

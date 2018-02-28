@@ -30,6 +30,7 @@ defined('SW_INDEX') or die();
       <script src="./js/respond.min.js"></script>
     <![endif]-->
 
+    <script src="./js/lodash.min.js"></script>
     <script src="./js/jquery.min.js"></script>
     <script src="./js/bootstrap.min.js"></script>
     <script src="./js/showdown.min.js"></script>
@@ -39,7 +40,7 @@ defined('SW_INDEX') or die();
   </head>
 
   <body>
-    <nav class="navbar navbar-primary navbar-fixed-top" id="sw-header">
+    <nav class="navbar navbar-inverse navbar-fixed-top" id="sw-header">
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#sw-navbar-top-collapse" aria-expanded="false">
