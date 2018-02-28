@@ -15,12 +15,20 @@
 
 defined('SW_INDEX') or die();
 
-//TODO
-sw_send_json([
-    [
-        'name' => 'test1.php'
-    ],
-    [
-        'name' => 'test2.php'
-    ]
-]);
+if ('GET' === $_SERVER['REQUEST_METHOD']) {
+    sw_send_json_result(0, sw_username());
+}
+else if ('POST' === $_SERVER['REQUEST_METHOD']) {
+    $newUserName = trim( @$_POST['u'] );
+    if (strlen($newUserName) > 255) {
+        $newUserName = trim(substr($newUserName, 0, 255));
+    }
+
+    $_SESSION[ SW_SESSION_USERNAME ] = $newUserName;
+
+    sw_send_json_result(0, sw_username());
+}
+else {
+    http_response_code(405);  // method not allowed
+    die();
+}

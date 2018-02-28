@@ -15,4 +15,58 @@
 
 defined('SW_INDEX') or die();
 
-//TODO
+if ('POST' !== $_SERVER['REQUEST_METHOD']) {
+    http_response_code(405);  // no POST
+    die();
+}
+
+$board_id = 1;  //TODO
+
+$content = (string)@$_POST['c'];
+if (strlen($content) > 16777215) {
+    $content = substr($content, 0, 16777215);
+}
+if ('' === $content) {
+    $content = null;
+}
+
+$notes = trim(@$_POST['n']);
+if (strlen($notes) > 255) {
+    $notes = substr($notes, 0, 255);
+}
+if ('' === $notes) {
+    $notes = null;
+}
+
+$db = sw_db();
+
+$db->begin_transaction();
+try {
+    $user = strtolower( sw_username() );
+    if ('' === $user) {
+        $user = null;
+    }
+
+    $ip = trim( @$_SERVER['REMOTE_ADDR'] );
+    if ('' === $ip) {
+        $ip = null;
+    }
+
+    $stmt = $db->prepare("INSERT INTO `content` (`board_id`,`content`,`notes`,`user`,`ip`) VALUES (?,?,?,?,?);");
+
+    $stmt->bind_param('issss',
+                      $board_id, $content, $notes, $user, $ip);
+    $stmt->execute();
+
+    $db->commit();
+}
+catch (\Exception $ex) {
+    $db->rollback();
+
+    throw $ex;
+}
+finally {
+    $stmt->close();
+}
+
+sw_send_json_result();

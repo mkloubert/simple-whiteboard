@@ -21,6 +21,9 @@ define('SW_DIR_ROOT', __DIR__ . '/');
 define('SW_DIR_CSS', SW_DIR_ROOT . 'css/');
 define('SW_DIR_JAVASCRIPT', SW_DIR_ROOT . 'js/');
 define('SW_DIR_MODULES', SW_DIR_ROOT . 'modules/');
+define('SW_DIR_UPLOADS', SW_DIR_ROOT . 'uploads/');
+
+define('SW_SESSION_USERNAME', 'sw_username');
 
 $SW_DB = false;
 $SW_CONFIG = require_once './config.inc.php';
@@ -90,6 +93,30 @@ function sw_no_frontend() {
     $app['showFooter'] = false;
 }
 
+$swRandSeed = false;
+/**
+ * Generates a new random integer.
+ * 
+ * @param int $min (optional) The minimum value.
+ * @param int $max (optional) The maximum value.
+ * 
+ * @return int The random value.
+ */
+function sw_rand_int($min = null, $max = null): int {
+    global $swRandSeed;
+
+    if (false === $swRandSeed) {
+        list($usec, $sec) = explode(' ', microtime());
+        $swRandSeed = $sec + $usec * 1000000;
+
+        mt_srand($swRandSeed);
+    }
+
+    return call_user_func_array(
+        "\\mt_rand", func_get_args()
+    );
+}
+
 /**
  * Sends a value as JSON string to the client.
  * 
@@ -119,4 +146,18 @@ function sw_send_json_result($code = 0, $data = null) {
         'code' => $code,
         'data' => $data,
     ), true);
+}
+
+/**
+ * Returns the name of the current user.
+ * 
+ * @return string The username.
+ */
+function sw_username() {
+    $username = trim(@$_SESSION[ SW_SESSION_USERNAME ]);
+    if (strlen($username) > 255) {
+        $username = trim(substr($username, 0, 255));
+    }
+
+    return $username;
 }

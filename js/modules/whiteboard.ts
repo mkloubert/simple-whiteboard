@@ -15,57 +15,59 @@
 /// <reference path="../../ts/codemirror.d.ts" />
 
 namespace SimpleWhiteboard.Whiteboard {
+    type ContentValue = IContent | false;
+    
     interface IFile {
+        id: number;
         name: string;
     }
 
     interface IContent {
-        id: number;
         content?: string;
         content_type?: string;
-        time: string;
+        files?: IFile[];
+        id: number | false;
+        time?: string;
     }
 
-    const EDITORS: CodeMirror.Editor[] = [];
-    let currentVersion: false | IContent;
+    interface IUploadResult {
+        name: string;
+        path: string;
+    }
+
+    const BASE64_PREFIX = 'base64,';
+
+    let editor: CodeMirror.Editor;
+    let lastSavedEditorContent: string;
+    let currentVersion: ContentValue;
     let isLoadCurrentVersion = false;
     let isSavingBoard = false;
     let isUpdatingFileList = false;
 
-    function focusVisibleEditor() {
-        forVisibleEditors((cm) => {
-            cm.focus();
-        });
+    function isEditorDirty() {
+        return lastSavedEditorContent !== editor.getValue();
     }
 
-    function forVisibleEditors(action: (editor: CodeMirror.Editor) => any) {
-        jQuery('.sw-whiteboard').each((index, e) => {
-            const WB = jQuery(e);
-            if (WB.is(':visible')) {
-                const CM: CodeMirror.Editor = eval("WB.find('.CodeMirror')[0].CodeMirror");
-                if (CM) {
-                    action(CM);
-                }
-            }
-        });
-    }
-
-    function loadCurrentVersion() {
+    function loadCurrentVersion(completed?: (err: any, content?: ContentValue) => void) {
         if (isLoadCurrentVersion) {
+            return;
+        }
+
+        if (isSavingBoard) {
             return;
         }
 
         isLoadCurrentVersion = true;
 
+        let content: ContentValue = false;
+        let err: any;
         jQuery.ajax({
             url: '?m=current',
 
             success: (result: JsonResult) => {
                 if (!result) {
                     return;
-                }
-
-                let content: IContent | false = false;
+                }                
 
                 switch (result.code) {
                     case 0:
@@ -76,12 +78,71 @@ namespace SimpleWhiteboard.Whiteboard {
                         content = null;
                         break;                        
                 }
+            },
 
-                updateView(content);
+            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
+                err = errorThrown;
             },
 
             complete: () => {
+                if (err) {
+                    console.error('[SIMPLE WHITEBOARD::whiteboard.loadCurrentVersion()] ' + toStringSafe(err));
+                }
+                else {
+                    currentVersion = content;
+                }
+
                 isLoadCurrentVersion = false;
+
+                if (completed) {
+                    completed(err, content);
+                }
+            }
+        });
+    }
+
+    function loadUserName(completed?: (err: any, result?: JsonResult) => void) {
+        const USERNAME_FIELD = jQuery('#sw-username');
+
+        let err: any;
+        let res: JsonResult;
+        jQuery.ajax({
+            url: '?m=user',
+            method: 'GET',
+
+            success: (result: JsonResult) => {
+                res = result;
+
+                if (result) {
+                    switch (result.code) {
+                        case 0:
+                            {
+                                let userName = toStringSafe(result.data).trim();
+                                if (userName.length > 255) {
+                                    userName = userName.substr(0, 255).trim();
+                                }
+
+                                USERNAME_FIELD.val( userName );
+                            }                            
+                            break;
+
+                        default:
+                            console.warn('[SIMPLE WHITEBOARD::whiteboard.loadUserName()] Result code: ' + toStringSafe( result.code ));
+                            break;
+                    }
+                }
+            },
+
+            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
+                err = errorThrown;
+
+                console.error('[SIMPLE WHITEBOARD::whiteboard.loadUserName()] ' + toStringSafe(errorThrown));
+            },
+
+            complete: () => {
+                if (completed) {
+                    completed(err, res);
+                }
             }
         });
     }
@@ -92,123 +153,313 @@ namespace SimpleWhiteboard.Whiteboard {
         }
         isSavingBoard = true;
 
-        try {
-            forVisibleEditors((cm) => {
-                const PARSER = createMarkdownParser();
+        const NOTES_FIELD = jQuery('#sw-editor-notes-1');
 
-                const MD = cm.getValue();
+        let reloadCurrent = false;
+        jQuery.ajax({
+            url: '?m=save',
+            method: 'POST',
 
-                jQuery('.sw-board').html(
-                    PARSER.makeHtml(MD)
-                );
-            });
+            data: {
+                c: toStringSafe( editor.getValue() ),
+                n: jQuery.trim( NOTES_FIELD.val() ),
+            },
 
-            showBoard();
-        }
-        finally {
-            isSavingBoard = false;
-        }
+            beforeSend: () => {
+                jQuery('#sw-save-btn').addClass('disabled');
+            },
+
+            success: (result: JsonResult) => {
+                if (!result) {
+                    return;
+                }
+
+                switch (result.code) {
+                    case 0:
+                        NOTES_FIELD.val('');
+                        reloadCurrent = true;
+                        break;
+                }
+            },
+
+            complete: () => {
+                jQuery('#sw-save-btn').removeClass('disabled');
+                isSavingBoard = false;
+
+                if (reloadCurrent) {
+                    loadCurrentVersion((err, content) => {
+                        if (!err) {
+                            updateViewAndEditor(content, true);
+                        }
+                    });
+                }
+            }
+        });
     }
 
-    function setEditorValue(text: string) {
-        EDITORS.forEach(e => {
-            e.setValue('' + text);
+    function saveUserName() {
+        const USERNAME_FIELD = jQuery('#sw-username');
+
+        let newUserName = jQuery.trim( USERNAME_FIELD.val() );
+        if (newUserName.length > 255) {
+            newUserName = newUserName.substr(0, 255).trim();
+        }
+
+        jQuery.ajax({
+            url: '?m=user',
+            method: 'POST',
+
+            data: {
+                u: newUserName,
+            },
+
+            success: (result: JsonResult) => {
+                if (result) {
+                    switch (result.code) {
+                        case 0:
+                            loadUserName();    
+                            break;
+
+                        default:
+                            console.warn('[SIMPLE WHITEBOARD::whiteboard.saveUserName()] Result code: ' + toStringSafe( result.code ));
+                            break;
+                    }
+                }
+            },
+
+            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
+                console.error('[SIMPLE WHITEBOARD::whiteboard.saveUserName()] ' + toStringSafe(errorThrown));
+            }
         });
     }
 
     function showBoard() {
-        jQuery('a[href="#sw-board-1"]').tab('show');
-        jQuery('a[href="#sw-board-2"]').tab('show');
+        selectTab('sw-board-1');
     }
 
     function showEditor() {
-        jQuery('a[href="#sw-editor-1"]').tab('show');
-        jQuery('a[href="#sw-editor-2"]').tab('show');
+        selectTab('sw-editor-1');
     }
 
-    function updateBoard() {
+    function updateEditorDirtyState() {
+        const TAB = jQuery('.sw-editor-tab');
+        TAB.removeClass('sw-is-dirty');
 
+        const DIRTY_FLAG = TAB.find('.sw-dirty');
+
+        if (isEditorDirty()) {
+            TAB.addClass('sw-is-dirty');
+            DIRTY_FLAG.show();
+        }
+        else {
+            DIRTY_FLAG.hide();
+        }
     }
 
-    function updateView(content: IContent | false) {
+    function updateView(content: ContentValue) {
         if (false === content) {
             return;
         }
 
-        const CURRENT = currentVersion;
-        if (CURRENT && content) {
-            if (CURRENT.id == content.id) {
-                return;
-            }
-        }
+        const MY_ARGS = arguments;
 
         try {
-            let md = (_.isNil(content) || _.isNil(content.content)) ? '' : content.content;
+            const BOARD = jQuery('.sw-board');
 
-            jQuery('.sw-board').html(
-                createMarkdownParser().makeHtml('' + md)
-            );
-            forVisibleEditors(cm => {
-                cm.setValue(md);
-            });
+            if (content) {
+                const MD = toStringSafe(content.content);
+
+                const TEMP = jQuery('<span></span>');
+                TEMP.html(
+                    createMarkdownParser().makeHtml( MD )
+                );
+                
+                // no scripts
+                TEMP.find('script').remove();
+    
+                TEMP.find('img')
+                    .addClass('img-responsive');
+    
+                if (jQuery.trim(BOARD.html()) !== jQuery.trim(TEMP.html())) {
+                    BOARD.html(
+                        TEMP.html()
+                    );
+                }
+            }
+            else {
+                BOARD.html('');
+
+                addAlert('No content', {
+                    canClose: false,
+                    target: BOARD,
+                    type: 'info'
+                });
+            }
         }
         finally {
             currentVersion = content;
         }
     }
 
-    $SWB.addOnLoaded(() => {
-        jQuery('.sw-editor .sw-editor-area').each((index, e) => {
-            const AREA = jQuery(e);
-            AREA.html('');
-            
-            const NEW_EDITOR = jQuery('<textarea />');
-            NEW_EDITOR.addClass('sw-textarea');
+    function updateViewAndEditor(content: ContentValue, selectBoard = false) {
+        if (content) {
+            const CONTENT_TO_SET = toStringSafe(content.content);
 
-            NEW_EDITOR.appendTo( AREA );
+            if (editor.getValue() !== CONTENT_TO_SET) {
+                editor.setValue(CONTENT_TO_SET);
+            }            
+            lastSavedEditorContent = CONTENT_TO_SET;
 
-            const EDITOR_OPTS: any = {
-                lineNumbers: false,
-                mode: "text/x-markdown",
-                autoRefresh: {
-                    delay: 500
-                },
-            };
+            updateEditorDirtyState();         
+        }
 
-            const NEW_CM_EDITOR = CodeMirror.fromTextArea(<HTMLTextAreaElement>AREA.find('textarea')[0],
-                                                          EDITOR_OPTS);
-            EDITORS.push( NEW_CM_EDITOR );
+        updateView(content);
+
+        if (selectBoard) {
+            showBoard();
+        }
+    }
+
+    function uploadAndInsertFile(file: File) {
+        const DOC = editor.getDoc();
+        const CURSOR = DOC.getCursor();
+
+        const TYPE = toStringSafe(file.type).toLowerCase().trim();
+
+        readBlob(file, (dataUrl) => {
+            if (_.isNil(file)) {
+                return;
+            }
+
+            const BASE64_SEP = dataUrl.toLowerCase().indexOf( BASE64_PREFIX );
+            if (BASE64_SEP > -1) {
+                const CONTENT = dataUrl.substr(BASE64_SEP + BASE64_PREFIX.length).trim();
+
+                jQuery.ajax({
+                    url: '?m=upload',
+                    method: 'POST',
+
+                    data: {
+                        c: CONTENT,
+                        t: TYPE,
+                    },
+
+                    success: (result: JsonResult) => {
+                        if (!result) {
+                            return;
+                        }
+
+                        switch (result.code) {
+                            case 0:
+                                const UPLOAD_RES: IUploadResult = result.data;
+                                if (UPLOAD_RES) {
+                                    DOC.replaceRange(` ![${UPLOAD_RES.name}](${UPLOAD_RES.path}) `, CURSOR);
+                                }
+                                break;
+
+                            case 2:
+                                addAlert(`The type '${ toStringSafe(result.data) }' is not supported!`, {
+                                    type: 'warning'
+                                });
+                                break;
+                        }
+                    }
+                });
+            }
         });
+    }
+
+    // initialize editor
+    $SWB.addOnLoaded(() => {
+        const AREA = jQuery('#sw-editor-1 .sw-editor-area');
+        AREA.html('');
+
+        const NEW_EDITOR = jQuery('<textarea />');
+        NEW_EDITOR.addClass('sw-textarea');
+
+        NEW_EDITOR.appendTo( AREA );
+
+        const EDITOR_OPTS: any = {
+            dragDrop: true,
+            lineNumbers: false,
+            mode: "text/x-markdown",
+            autoRefresh: {
+                delay: 500
+            },
+        };
+
+        editor = CodeMirror.fromTextArea(<HTMLTextAreaElement>AREA.find('textarea')[0],
+                                         EDITOR_OPTS);
+
+        editor.on('drop', function(data, e) {
+            if (!e || !e.dataTransfer) {
+                return;
+            }
+
+            const DROPPED_FILES: FileList = e.dataTransfer.files;
+            if (DROPPED_FILES && DROPPED_FILES.length > 0) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                for (let i = 0; i < DROPPED_FILES.length; i++) {
+                    uploadAndInsertFile( DROPPED_FILES.item(i) );
+                }
+
+                return false;
+            }
+        });
+
+        editor.on('change', () => {
+            updateEditorDirtyState();
+
+            if (isEditorDirty()) {
+                updateView({
+                    id: false,
+                    content: editor.getValue(),
+                });
+            }
+        });
+
+        lastSavedEditorContent = editor.getValue();
+        updateEditorDirtyState();
     });
 
+    // auto focus editor when get visible
     $SWB.addOnLoaded(() => {
         jQuery('a[href="#sw-editor-1"]').on('shown.bs.tab', () => {
-            focusVisibleEditor();
+            editor.focus();
         });
     });
 
+    // save button
     $SWB.addOnLoaded(() => {
-        jQuery('.sw-save-btn').click(() => {
+        jQuery('#sw-save-btn').click(() => {
             saveBoard();
         });
     });
 
+    // global shortcuts
     $SWB.addOnLoaded(() => {
         jQuery(window).bind('keydown', function(event) {
-            let action: () => any;
+            let action: () => void;
 
             if (event.ctrlKey || event.metaKey) {
                 switch (String.fromCharCode(event.which).toLowerCase()) {
                     case 'b':
+                        // CTRL + B (board)
                         action = () => showBoard();
                         break;
 
                     case 'e':
+                        // CTRL + E (editor)
                         action = () => showEditor();
                         break;
 
                     case 's':
-                        action = () => saveBoard();
+                        // CTRL + S (save)
+                        action = () => {
+                            jQuery('#sw-save-btn').click();
+                        };
                         break;
                 }
             }
@@ -220,11 +471,43 @@ namespace SimpleWhiteboard.Whiteboard {
         });
     });
 
+    // load current version
     $SWB.addOnLoaded(() => {
-        loadCurrentVersion();
+        loadCurrentVersion((err, content) => {
+            if (err) {
+                addAlert(
+                    `Could not load board content: '${ toStringSafe(err) }'`
+                );
+            }
+            else {
+                updateViewAndEditor(content, true);
+            }
 
-        setInterval(() => {
-            loadCurrentVersion();
-        }, 2000);
+            setInterval(() => {
+                loadCurrentVersion((err, content) => {
+                    if (isEditorDirty()) {
+                        return;
+                    }
+
+                    if (!err) {
+                        updateViewAndEditor(content);
+                    }
+                });
+            }, 1500);    
+        });
+    });
+
+    $SWB.addOnLoaded(() => {
+        const USERNAME_FIELD = jQuery('#sw-username');
+
+        USERNAME_FIELD.focusout(() => {
+            saveUserName();
+        });
+
+        loadUserName(() => {
+            if ('' === jQuery.trim( USERNAME_FIELD.val() )) {
+                USERNAME_FIELD.focus();
+            }
+        });        
     });
 }

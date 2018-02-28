@@ -19,6 +19,11 @@ define('SW_INDEX', 1);
 
 require_once './bootstrap.php';
 
+if ('' === session_id()) {
+    session_set_cookie_params( 31557600 );  // one year
+    session_start();
+}
+
 $module = trim(strtolower(@$_REQUEST['m']));
 if ('' === $module) {
     $module = 'whiteboard';

@@ -5,3 +5,6 @@
 /css/modules/**/*.css
 /css/style.css
 /css/whiteboard.css
+/files/**/*
+!/files/.htaccess
+/uploads/**/*

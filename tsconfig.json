@@ -2,8 +2,9 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "watch": true,
-        "sourceMap": true
+        "removeComments": true,
+        "sourceMap": true,
+        "watch": true
     },
     "include": [
         "js/*.ts",

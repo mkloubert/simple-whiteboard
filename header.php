@@ -50,7 +50,19 @@ defined('SW_INDEX') or die();
             <span class="icon-bar"></span>
           </button>
           <a class="navbar-brand" href="https://github.com/mkloubert/simple-whiteboard" target="_blank">Simple Whiteboard</a>
+
         </div>
+        
+        <a class="btn btn-primary navbar-btn navbar-right" id="sw-save-btn" title="CTRL + S">
+          <i class="fa fa-floppy-o" aria-hidden="true"></i>
+          <span>Save</span>
+        </a>
+
+        <form class="navbar-form navbar-right">
+          <div class="form-group">
+            <input type="text" class="form-control" placeholder="Your name" id="sw-username">
+          </div>
+        </form>
 
         <div class="collapse navbar-collapse" id="sw-navbar-top-collapse">
           <ul class="nav navbar-nav"></ul>
@@ -59,5 +71,7 @@ defined('SW_INDEX') or die();
     </nav>
 
     <div class="container-fluid" id="sw-content">
+      <div class="row" id="sw-alerts"></div>
+
       <div class="row">
         <div class="col col-sm-12">

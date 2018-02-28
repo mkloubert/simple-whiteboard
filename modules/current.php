@@ -17,11 +17,16 @@
 
 defined('SW_INDEX') or die();
 
+if ('GET' !== $_SERVER['REQUEST_METHOD']) {
+    http_response_code(405);  // no GET
+    die();
+}
+
 $board = 1;  //TODO
 
 $db = sw_db();
 
-$stmt = $db->prepare("SELECT `id`,`content`,`content_type`,`time` FROM `content` WHERE `board_id`=? ORDER BY `id` DESC,`time` DESC LIMIT 0,1");
+$stmt = $db->prepare("SELECT `id`,`content`,`content_type`,`time` FROM `content` WHERE `board_id`=? ORDER BY `id` DESC,`time` DESC LIMIT 0,1;");
 try {
     $stmt->bind_param('i', $board);
     $stmt->execute();
@@ -42,10 +47,35 @@ if (empty($currentVersion)) {
     sw_send_json_result(1);
 }
 else {
-    sw_send_json_result(0, array(
-        'id' => (int)$currentVersion['id'],
+    $response = array(
         'content' => $currentVersion['content'],
         'content_type' => $currentVersion['content_type'],
+        'files' => array(),
+        'id' => (int)$currentVersion['id'],
         'time' => DateTime::createFromFormat('Y-m-d H:i:s', $currentVersion['time']),
-    ));
+    );
+
+    $stmt = $db->prepare("SELECT `id`,`name` FROM `files` WHERE `board_id`=? AND `is_deleted`='0' ORDER BY `id` DESC,`time` DESC;");
+    try {
+        $stmt->bind_param('i', $board);
+        $stmt->execute();
+    
+        $result = $stmt->get_result();
+        try {
+            while ($row = $result->fetch_array()) {
+                $response[] = array(
+                    'id' => (int)$row[0],
+                    'name' => $row[1],
+                );
+            }
+        }
+        finally {
+            $result->close();
+        }
+    }
+    finally {
+        $stmt->close();
+    }
+
+    sw_send_json_result(0, $response);
 }

@@ -26,17 +26,24 @@ defined('SW_INDEX') or die();
 <div class="row sw-whiteboard">
     <div class="col-md-9">
         <ul class="nav nav-tabs">
-            <li class="active"><a data-toggle="tab" href="#sw-board-1">Board (CTRL + B)</a></li>
-            <li><a data-toggle="tab" href="#sw-editor-1">Editor (CTRL + E)</a></li>
+            <li class="active"><a data-toggle="tab" href="#sw-board-1" class="sw-tab sw-board-tab" id="sw-board-tab-1">
+                <i class="fa fa-desktop" aria-hidden="true"></i>
+                <span>Board (CTRL + B)</span>
+            </a></li>
+            <li><a data-toggle="tab" href="#sw-editor-1" class="sw-tab sw-editor-tab" id="sw-editor-tab-1">
+                <span class="sw-dirty">*</span>
+                <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                <span>Editor (CTRL + E)</span>
+            </a></li>
         </ul>
 
         <div class="tab-content">
             <div id="sw-board-1" class="sw-board tab-pane sw-tab-pane fade in active"></div>
 
             <div id="sw-editor-1" class="sw-editor tab-pane sw-tab-pane fade in">
-                <div class="sw-editor-area"></div>
+                <input type="text" class="form-control sw-editor-notes" id="sw-editor-notes-1" maxlength="255" placeholder="Optional comment">
 
-                <a class="btn btn-large btn-primary sw-save-btn" id="sw-save-btn-1">Save</a>
+                <div class="sw-editor-area"></div>
             </div>
         </div>
     </div>
