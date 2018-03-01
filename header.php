@@ -42,7 +42,7 @@ defined('SW_INDEX') or die();
     <script src="./js/codemirror/mode/markdown/markdown.js"></script>
     <script src="./js/script.js"></script>
 
-    <title>Simple Whiteboard</title>
+    <title><?= htmlentities( sw_board_name() ) ?></title>
   </head>
 
   <body>

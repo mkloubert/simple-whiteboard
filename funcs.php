@@ -17,6 +17,7 @@ defined('SW_BOOTSTRAP') or die();
 
 $SW_DB = false;
 $SW_BOARD = false;
+$SW_BOARD_NAME = false;
 
 /**
  * Gets the ID of the underlying board.
@@ -44,37 +45,41 @@ function sw_board() {
  * @return string The name of the board.
  */
 function sw_board_name() {
-    $title = null;
+    global $SW_BOARD_NAME;
 
-    $db = sw_db();
+    if (false === $SW_BOARD_NAME) {
+        $SW_BOARD_NAME = null;
 
-    $stmt = $db->prepare("SELECT `name` FROM `boards` WHERE `id`=? LIMIT 0,1;");
-    try {
-        $id = sw_board();
+        $db = sw_db();
 
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-
-        $result = $stmt->get_result();
+        $stmt = $db->prepare("SELECT `name` FROM `boards` WHERE `id`=? LIMIT 0,1;");
         try {
-            if ($row = $result->fetch_array()) {
-                $title = $row[0];
+            $id = sw_board();
+
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+
+            $result = $stmt->get_result();
+            try {
+                if ($row = $result->fetch_array()) {
+                    $SW_BOARD_NAME = $row[0];
+                }
+            }
+            finally {
+                $result->close();
             }
         }
         finally {
-            $result->close();
+            $stmt->close();
+        }
+
+        $SW_BOARD_NAME = trim($SW_BOARD_NAME);
+        if ('' === $SW_BOARD_NAME) {
+            $SW_BOARD_NAME = 'Whiteboard';
         }
     }
-    finally {
-        $stmt->close();
-    }
 
-    $title = trim($title);
-    if ('' === $title) {
-        $title = 'Whiteboard';
-    }
-
-    return $title;
+    return $SW_BOARD_NAME;
 }
 
 /**
