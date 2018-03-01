@@ -25,6 +25,8 @@ defined('SW_INDEX') or die();
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/highlight/monokai-sublime.css">
     <link rel="stylesheet" href="./css/codemirror/codemirror.css">
+    <link rel="stylesheet" href="./css/mermaid/mermaid.css">
+    <link rel="stylesheet" href="./css/mermaid/mermaid.dark.css">
     <link rel="stylesheet" href="./css/style.css">
 
     <!--[if lt IE 9]>
@@ -40,6 +42,7 @@ defined('SW_INDEX') or die();
     <script src="./js/codemirror/codemirror.js"></script>
     <script src="./js/codemirror/addon/display/autorefresh.js"></script>
     <script src="./js/codemirror/mode/markdown/markdown.js"></script>
+    <script src="./js/mermaid/mermaid.min.js"></script>
     <script src="./js/script.js"></script>
 
     <title><?= htmlentities( sw_board_name() ) ?></title>

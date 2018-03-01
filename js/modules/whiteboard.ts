@@ -279,6 +279,11 @@ namespace SimpleWhiteboard.Whiteboard {
                 if (reloadCurrent) {
                     loadCurrentVersion((err, content) => {
                         if (!err) {
+                            if (content) {
+                                lastSavedEditorContent = content.content;
+                            }
+                            updateEditorDirtyState();
+
                             updateViewAndEditor(content, true);
                         }
                     });
@@ -516,22 +521,39 @@ namespace SimpleWhiteboard.Whiteboard {
                 TEMP.html(
                     createMarkdownParser().makeHtml( MD )
                 );
-                
-                // code blocks
-                TEMP.find('pre code').each(function(i, block) {
-                    hljs.highlightBlock(block);
-                });
-                
+                                
                 // no scripts
                 TEMP.find('script').remove();
     
                 TEMP.find('img')
                     .addClass('img-responsive');
-    
-                if (jQuery.trim(BOARD.html()) !== jQuery.trim(TEMP.html())) {
+
+                // code blocks
+                TEMP.find('pre code').each(function(i, block) {
+                    hljs.highlightBlock(block);
+                });
+
+                const IS_DIFFERENT = jQuery.trim(BOARD.html()) !== jQuery.trim(TEMP.html());
+                
+                // mermaid
+                TEMP.find('pre code.language-mermaid').each(function(i, block) {
+                    const CODE_BLOCK = jQuery(block);
+                    const PRE_BLOCK = CODE_BLOCK.parent();
+
+                    const MERMAID_DIV = jQuery( '<div class="mermaid sw-mermaid" />' );
+                    MERMAID_DIV.text( CODE_BLOCK.text() );
+
+                    PRE_BLOCK.replaceWith( MERMAID_DIV );
+                });
+
+                if (jQuery.trim( BOARD.attr('sw-pre-mermaid') ) !== jQuery.trim( TEMP.html() )) {
+                    BOARD.attr('sw-pre-mermaid', TEMP.html());
+
                     BOARD.html(
                         TEMP.html()
                     );
+
+                    eval("mermaid.init(undefined, BOARD.find('.sw-mermaid'))");
                 }
             }
             else {
@@ -561,11 +583,11 @@ namespace SimpleWhiteboard.Whiteboard {
             updateEditorDirtyState();         
         }
 
-        updateView(content);
-
         if (selectBoard) {
             showBoard();
         }
+        
+        updateView(content);
     }
 
     function uploadAndInsertFile(file: File) {
@@ -682,23 +704,31 @@ namespace SimpleWhiteboard.Whiteboard {
 
         editor.on('change', () => {
             updateEditorDirtyState();
-
-            if (isEditorDirty()) {
-                updateView({
-                    id: false,
-                    content: editor.getValue(),
-                });
-            }
         });
 
         lastSavedEditorContent = editor.getValue();
         updateEditorDirtyState();
     });
 
-    // auto focus editor when get visible
+    // auto focus editor when gets visible
     $SWB.addOnLoaded(() => {
         jQuery('a[href="#sw-editor-1"]').on('shown.bs.tab', () => {
             editor.focus();
+        });
+    });
+
+    // auto focus board when gets visible
+    $SWB.addOnLoaded(() => {
+        jQuery('a[href="#sw-board-1"]').on('shown.bs.tab', () => {
+            if (isEditorDirty()) {
+                updateView({
+                    id: false,
+                    content: editor.getValue(),
+                });
+            }
+            else {
+                updateView(currentVersion);
+            }
         });
     });
 
