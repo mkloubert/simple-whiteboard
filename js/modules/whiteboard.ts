@@ -639,6 +639,7 @@ namespace SimpleWhiteboard.Whiteboard {
         });
     }
 
+    /*
     $SWB.addOnLoaded(() => {
         setTimeout(() => {
             selectTab('sw-files-2');
@@ -647,7 +648,7 @@ namespace SimpleWhiteboard.Whiteboard {
                 selectTab('sw-board-1');
             }, 500);
         }, 500);
-    });
+    });*/
 
     // initialize editor
     $SWB.addOnLoaded(() => {
