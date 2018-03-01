@@ -34,32 +34,9 @@ else {
     $response = array(
         'content' => $currentVersion['content'],
         'content_type' => $currentVersion['content_type'],
-        'files' => array(),
         'id' => (int)$currentVersion['id'],
         'time' => DateTime::createFromFormat('Y-m-d H:i:s', $currentVersion['time']),
     );
-
-    $stmt = $db->prepare("SELECT `id`,`name` FROM `files` WHERE `board_id`=? AND `is_deleted`='0' ORDER BY `id` DESC,`time` DESC;");
-    try {
-        $stmt->bind_param('i', $board);
-        $stmt->execute();
-    
-        $result = $stmt->get_result();
-        try {
-            while ($row = $result->fetch_array()) {
-                $response['files'][] = array(
-                    'id' => (int)$row[0],
-                    'name' => $row[1],
-                );
-            }
-        }
-        finally {
-            $result->close();
-        }
-    }
-    finally {
-        $stmt->close();
-    }
 
     sw_send_json_result(0, $response);
 }

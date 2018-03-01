@@ -60,7 +60,7 @@ else {
                 $ip = '_' . dechex($ip);
             }
             
-            $file = $uploadDir . '/' . $fileDesc['pre'] . $ip . '_' . time() . '_' . $suff . '.' . $fileDesc['ext'];
+            $file = $uploadDir . '/' . $fileDesc['pre'] . $ip . '_' . $ts . '_' . $suff . '.' . $fileDesc['ext'];
 
             if (@is_file($file)) {
                 $code = 4;  // file alread exists

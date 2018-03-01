@@ -19,12 +19,13 @@ namespace SimpleWhiteboard.Whiteboard {
     interface IFile {
         id: number;
         name: string;
+        size: number | false;
+        time: string;
     }
 
     interface IContent {
         content?: string;
         content_type?: string;
-        files?: IFile[];
         id: number | false;
         time?: string;
     }
@@ -41,6 +42,7 @@ namespace SimpleWhiteboard.Whiteboard {
     let lastSavedEditorContent: string;
     let currentVersion: ContentValue;
     let isLoadCurrentVersion = false;
+    let isReloadingFileList = false;
     let isSavingBoard = false;
     let isUpdatingFileList = false;
 
@@ -101,7 +103,7 @@ namespace SimpleWhiteboard.Whiteboard {
         let content: ContentValue = false;
         let err: any;
         jQuery.ajax({
-            url: '?m=current&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
+            url: $SWB.getModuleUrl('current'),
 
             success: (result: JsonResult) => {
                 if (!result) {
@@ -146,7 +148,7 @@ namespace SimpleWhiteboard.Whiteboard {
         let err: any;
         let res: JsonResult;
         jQuery.ajax({
-            url: '?m=user&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
+            url: $SWB.getModuleUrl('user'),
             method: 'GET',
 
             success: (result: JsonResult) => {
@@ -186,6 +188,47 @@ namespace SimpleWhiteboard.Whiteboard {
         });
     }
 
+    function reloadFileList(completed?: (err: any, files: IFile[]) => void) {
+        if (isReloadingFileList) {
+            return;
+        }
+
+        isReloadingFileList = true;
+
+        let err: any;
+        let files: IFile[];
+        jQuery.ajax({
+            url: $SWB.getModuleUrl('files'),
+            method: 'GET',
+
+            success: (result: JsonResult) => {
+                if (!result) {
+                    return;
+                }
+
+                switch (result.code) {
+                    case 0:
+                        files = result.data;
+                        break;
+                }
+            },
+
+            error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
+                err = errorThrown;
+
+                console.error('[SIMPLE WHITEBOARD::whiteboard.reloadFileList()] ' + toStringSafe(errorThrown));
+            },
+
+            complete: () => {
+                isReloadingFileList = false;
+
+                if (completed) {
+                    completed(err, files);
+                }
+            }
+        });
+    }
+
     function saveBoard() {
         if (isSavingBoard) {
             return;
@@ -196,7 +239,7 @@ namespace SimpleWhiteboard.Whiteboard {
 
         let reloadCurrent = false;
         jQuery.ajax({
-            url: '?m=save&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
+            url: $SWB.getModuleUrl('save'),
             method: 'POST',
 
             data: {
@@ -253,7 +296,7 @@ namespace SimpleWhiteboard.Whiteboard {
         }
 
         jQuery.ajax({
-            url: '?m=user&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
+            url: $SWB.getModuleUrl('user'),
             method: 'POST',
 
             data: {
@@ -300,6 +343,159 @@ namespace SimpleWhiteboard.Whiteboard {
         }
         else {
             DIRTY_FLAG.hide();
+        }
+    }
+
+    function updateFileList(files: IFile[]) {
+        const ARGS = arguments;
+
+        if (isUpdatingFileList) {
+            setTimeout(() => {
+                updateFileList.apply(null, ARGS);
+            }, 1000);
+
+            return;
+        }
+
+        isUpdatingFileList = true;
+        try {
+            jQuery('.sw-file-list').each((index, e) => {
+                const FILE_LIST = jQuery(e);
+
+                if (files && files.length > 0) {
+                    let whiteboardFileList = FILE_LIST.find('.sw-whiteboard-filelist');
+                    if (whiteboardFileList.length < 1) {
+                        whiteboardFileList = jQuery('<div class="sw-whiteboard-filelist" />');
+    
+                        FILE_LIST.html('');
+                        FILE_LIST.append( whiteboardFileList );
+                    }
+    
+                    const HAS_ITEMS = whiteboardFileList.find('.sw-whiteboard-file').length > 0;
+    
+                    // remove obsolete items
+                    whiteboardFileList.find('.sw-whiteboard-file').each(function () {
+                        const FILE_ITEM = jQuery(this);
+                        const FILE_ID = parseInt( FILE_ITEM.attr('sw-id') );
+    
+                        let itemFound = false;
+                        for (const F of files) {
+                            if (F.id === FILE_ID) {
+                                itemFound = true;
+                                break;
+                            }
+                        }
+    
+                        if (!itemFound) {
+                            FILE_ITEM.remove();
+                        }
+                    });
+    
+                    // add new items
+                    files.forEach(f => {
+                        const EXISTING_ITEM = whiteboardFileList.find(`.sw-whiteboard-file[sw-id='${ toStringSafe(f.id) }']`);
+                        if (EXISTING_ITEM.length > 0) {
+                            return;
+                        }
+
+                        const FILE_NAME = toStringSafe( f.name );
+    
+                        const NEW_ITEM = jQuery('<div class="media sw-whiteboard-file">' + 
+                                                '<div class="media-body">' + 
+                                                '<h4 class="media-heading"></h4>' + 
+                                                '<span></span>' + 
+                                                '</div>' + 
+                                                '<div class="media-right">' + 
+                                                '</div>' + 
+                                                '</div>');
+    
+                        NEW_ITEM.attr('sw-id', f.id);
+                        NEW_ITEM.attr('title', 'Click here to download...');
+    
+                        const ITEM_BODY = NEW_ITEM.find('.media-body');
+                        const ITEM_FUNCTIONS = NEW_ITEM.find('.media-right');
+                        
+                        ITEM_BODY.find('.media-heading')
+                                 .text( toStringSafe(f.name) );
+    
+                        const FILE_INFO = ITEM_BODY.find('span');
+                        const ADD_INFO = (label: any, value: any) => {
+                            const NEW_INFO = jQuery('<div class="sw-file-info">' + 
+                                                    '<span class="sw-label"></span>' + 
+                                                    '<span class="sw-value"></span>' + 
+                                                    '</div>');
+    
+                            NEW_INFO.find('.sw-label') 
+                                    .text( toStringSafe(label) + ':' );
+                            NEW_INFO.find('.sw-value') 
+                                    .text( toStringSafe(value) );
+    
+                            NEW_INFO.appendTo( FILE_INFO );
+                        };
+    
+                        if (false !== f.size) {
+                            ADD_INFO('Size', f.size);
+                        }
+                        if (f.time) {
+                            ADD_INFO('Last modified', f.time);
+                        }
+    
+                        ITEM_BODY.click(() => {
+                            window.open('./file.php?f=' + encodeURIComponent( toStringSafe(f.id) ), '_blank');
+                        });
+
+                        const DELETE_BTN = jQuery('<a class="btn btn-xs btn-danger">' + 
+                                                  '<i class="fa fa-trash-o" aria-hidden="true"></i>' + 
+                                                  '</a>');
+                        DELETE_BTN.attr('title', `Delete '${FILE_NAME}'...`);
+                        DELETE_BTN.click(() => {
+                            if (confirm(`Are you sure to delete '${FILE_NAME}'?`)) {
+                                jQuery.ajax({
+                                    url: $SWB.getModuleUrl('files') + '&f=' + encodeURIComponent( toStringSafe(f.id) ),
+                                    method: 'DELETE',
+
+                                    success: (result: JsonResult) => {
+                                        if (!result) {
+                                            return;
+                                        }
+
+                                        switch (result.code) {
+                                            case 0:
+                                                jQuery(`.sw-whiteboard-file[sw-id='${ toStringSafe(f.id) }']`).remove();
+                                                break;
+
+                                            default:
+                                                console.warn('[SIMPLE WHITEBOARD::whiteboard.updateFileList(' + toStringSafe(f.id) + ')] Result code: ' + toStringSafe( result.code ));
+                                                break;
+                                        }
+                                    },
+
+                                    error: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
+                                        addAlert(
+                                            `Could not delete file '${FILE_NAME}': '${ toStringSafe(errorThrown) }'`
+                                        );
+                                    }
+                                });
+                            }
+                        });
+                        DELETE_BTN.appendTo( ITEM_FUNCTIONS );
+    
+                        if (HAS_ITEMS) {
+                            whiteboardFileList.prepend( NEW_ITEM );                        
+                        }
+                        else {
+                            whiteboardFileList.append( NEW_ITEM );
+                        }
+                    });
+                }
+                else {
+                    FILE_LIST.html('');
+                    FILE_LIST.text('No files found');
+                }
+            });
+        }
+        finally {
+            isUpdatingFileList = false;
         }
     }
 
@@ -388,7 +584,7 @@ namespace SimpleWhiteboard.Whiteboard {
                 const CONTENT = dataUrl.substr(BASE64_SEP + BASE64_PREFIX.length).trim();
 
                 jQuery.ajax({
-                    url: '?m=upload&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
+                    url: $SWB.getModuleUrl('upload'),
                     method: 'POST',
 
                     data: {
@@ -559,6 +755,62 @@ namespace SimpleWhiteboard.Whiteboard {
                     }
                 });
             }, 1500);    
+        });
+    });
+
+    // load file list
+    $SWB.addOnLoaded(() => {
+        reloadFileList((err, files) => {
+            if (err) {
+                addAlert(
+                    `Could not load file list: '${ toStringSafe(err) }'`
+                );
+            }
+            else {
+                updateFileList(files);
+            }
+
+            setInterval(() => {
+                reloadFileList((err, files) => {
+                    if (!err) {
+                        updateFileList(files);
+                    }
+                });
+            }, 1500);
+        });
+    });
+
+    // add file button(s)
+    $SWB.addOnLoaded(() => {
+        jQuery('.sw-add-file-btn').click(function() {
+            const BTN = jQuery(this);
+            const PARENT = BTN.parent();
+
+            PARENT.find('input[type="file"]')
+                  .remove();
+
+            const FILE_FIELD = jQuery('<input type="file" />');
+            FILE_FIELD.hide();
+            FILE_FIELD.appendTo( PARENT );
+
+            FILE_FIELD.change(() => {
+                const FIELD_FIELD_ELEMENT = <HTMLInputElement>FILE_FIELD[0];
+                if (FIELD_FIELD_ELEMENT.files && FIELD_FIELD_ELEMENT.files.length > 0 && FIELD_FIELD_ELEMENT.files[0]) {
+                    const FORM_DATA = new FormData();
+                    FORM_DATA.append('swFileToUpload', FIELD_FIELD_ELEMENT.files[0]);
+
+                    jQuery.ajax({
+                        url: $SWB.getModuleUrl('files'),
+                        method: 'POST',
+
+                        data: FORM_DATA,
+                        processData: false,
+                        contentType: false,
+                    });
+                }
+            });
+
+            FILE_FIELD.click();
         });
     });
 

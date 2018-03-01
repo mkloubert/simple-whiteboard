@@ -185,6 +185,18 @@ namespace SimpleWhiteboard {
         }
 
         /**
+         * Returns a module URL for the underlying board.
+         * 
+         * @param {string} module The name of the module.
+         * 
+         * @return {string} The generated URL.
+         */
+        public getModuleUrl(moduleName: string) {
+            return '?m=' + encodeURIComponent( toStringSafe(moduleName) ) +
+                   '&b=' + encodeURIComponent( toStringSafe(this.board) );
+        }
+
+        /**
          * Initializes the app.
          */
         public init() {
