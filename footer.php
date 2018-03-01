@@ -49,6 +49,8 @@ if (@is_file($jsFile)) {
 
         <script type="text/javascript">
             jQuery(function() {
+                $SWB.board = <?= json_encode( sw_board() ) ?>;                
+
                 SimpleWhiteboard.App.current = $SWB;
 
                 $SWB.run();

@@ -16,6 +16,22 @@
 defined('SW_BOOTSTRAP') or die();
 
 $SW_DB = false;
+$SW_BOARD = false;
+
+/**
+ * Gets the ID of the underlying board.
+ * 
+ * @return int The board ID.
+ */
+function sw_board() {
+    global $SW_BOARD;
+
+    if (false === $SW_BOARD) {
+        $SW_BOARD = 1;  //TODO
+    }
+
+    return $SW_BOARD;
+}
 
 /**
  * Returns the current version of a board.

@@ -22,7 +22,7 @@ if ('GET' !== $_SERVER['REQUEST_METHOD']) {
     die();
 }
 
-$board = 1;  //TODO
+$board = sw_board();
 
 $db = sw_db();
 

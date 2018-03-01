@@ -20,7 +20,7 @@ if ('POST' !== $_SERVER['REQUEST_METHOD']) {
     die();
 }
 
-$board_id = 1;  //TODO
+$board_id = sw_board();
 
 $code = 0;
 $data = null;

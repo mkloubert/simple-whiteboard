@@ -101,7 +101,7 @@ namespace SimpleWhiteboard.Whiteboard {
         let content: ContentValue = false;
         let err: any;
         jQuery.ajax({
-            url: '?m=current',
+            url: '?m=current&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
 
             success: (result: JsonResult) => {
                 if (!result) {
@@ -146,7 +146,7 @@ namespace SimpleWhiteboard.Whiteboard {
         let err: any;
         let res: JsonResult;
         jQuery.ajax({
-            url: '?m=user',
+            url: '?m=user&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
             method: 'GET',
 
             success: (result: JsonResult) => {
@@ -196,7 +196,7 @@ namespace SimpleWhiteboard.Whiteboard {
 
         let reloadCurrent = false;
         jQuery.ajax({
-            url: '?m=save',
+            url: '?m=save&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
             method: 'POST',
 
             data: {
@@ -253,7 +253,7 @@ namespace SimpleWhiteboard.Whiteboard {
         }
 
         jQuery.ajax({
-            url: '?m=user',
+            url: '?m=user&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
             method: 'POST',
 
             data: {
@@ -388,7 +388,7 @@ namespace SimpleWhiteboard.Whiteboard {
                 const CONTENT = dataUrl.substr(BASE64_SEP + BASE64_PREFIX.length).trim();
 
                 jQuery.ajax({
-                    url: '?m=upload',
+                    url: '?m=upload&b=' + encodeURIComponent( toStringSafe($SWB.board) ),
                     method: 'POST',
 
                     data: {

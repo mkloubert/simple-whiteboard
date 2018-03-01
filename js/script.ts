@@ -159,6 +159,11 @@ namespace SimpleWhiteboard {
         private _onLoaded: OnLoadedCallback[];
 
         /**
+         * The ID of the underlying board.
+         */
+        public board: number;
+
+        /**
          * Stores the current app.
          */
         public static current: App;
