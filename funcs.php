@@ -27,10 +27,54 @@ function sw_board() {
     global $SW_BOARD;
 
     if (false === $SW_BOARD) {
-        $SW_BOARD = 1;  //TODO
+        $SW_BOARD = trim(@$_REQUEST['b']);
+        if (!is_numeric($SW_BOARD)) {
+            $SW_BOARD = 1;
+        }
+
+        $SW_BOARD = (int)$SW_BOARD;
     }
 
     return $SW_BOARD;
+}
+
+/**
+ * Returns the title of the board.
+ * 
+ * @return string The name of the board.
+ */
+function sw_board_name() {
+    $title = null;
+
+    $db = sw_db();
+
+    $stmt = $db->prepare("SELECT `name` FROM `boards` WHERE `id`=? LIMIT 0,1;");
+    try {
+        $id = sw_board();
+
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        try {
+            if ($row = $result->fetch_array()) {
+                $title = $row[0];
+            }
+        }
+        finally {
+            $result->close();
+        }
+    }
+    finally {
+        $stmt->close();
+    }
+
+    $title = trim($title);
+    if ('' === $title) {
+        $title = 'Whiteboard';
+    }
+
+    return $title;
 }
 
 /**
@@ -190,6 +234,12 @@ function sw_send_json_result($code = 0, $data = null) {
  */
 function sw_username() {
     $username = trim(@$_SESSION[ SW_SESSION_USERNAME ]);
+
+    if ('' === $username) {
+        // try basic auth
+        $username = trim( @$_SERVER['PHP_AUTH_USER'] );
+    }
+
     if (strlen($username) > 255) {
         $username = trim(substr($username, 0, 255));
     }

@@ -617,6 +617,16 @@ namespace SimpleWhiteboard.Whiteboard {
         });
     }
 
+    $SWB.addOnLoaded(() => {
+        setTimeout(() => {
+            selectTab('sw-files-2');
+
+            setTimeout(() => {
+                selectTab('sw-board-1');
+            }, 500);
+        }, 500);
+    });
+
     // initialize editor
     $SWB.addOnLoaded(() => {
         const AREA = jQuery('#sw-editor-1 .sw-editor-area');
@@ -782,7 +792,10 @@ namespace SimpleWhiteboard.Whiteboard {
 
     // add file button(s)
     $SWB.addOnLoaded(() => {
-        jQuery('.sw-add-file-btn').click(function() {
+        const BTNS = jQuery('.sw-add-file-btn');
+        const BTN_LABELS = BTNS.find('span');
+
+        BTNS.click(function() {
             const BTN = jQuery(this);
             const PARENT = BTN.parent();
 
@@ -796,16 +809,51 @@ namespace SimpleWhiteboard.Whiteboard {
             FILE_FIELD.change(() => {
                 const FIELD_FIELD_ELEMENT = <HTMLInputElement>FILE_FIELD[0];
                 if (FIELD_FIELD_ELEMENT.files && FIELD_FIELD_ELEMENT.files.length > 0 && FIELD_FIELD_ELEMENT.files[0]) {
+                    const FILE = FIELD_FIELD_ELEMENT.files[0];
+
                     const FORM_DATA = new FormData();
                     FORM_DATA.append('swFileToUpload', FIELD_FIELD_ELEMENT.files[0]);
 
                     jQuery.ajax({
+                        async: true,
+
                         url: $SWB.getModuleUrl('files'),
                         method: 'POST',
 
                         data: FORM_DATA,
                         processData: false,
                         contentType: false,
+
+                        xhr: () => {
+                            const XHR: JQueryXHR = $.ajaxSettings.xhr();
+
+                            if (XHR.upload) {
+                                XHR.upload.onprogress = function(this: XMLHttpRequest, ev: ProgressEvent) {
+                                    if (ev.lengthComputable) {
+                                        const PERCENTAGE = Math.floor( ev.loaded / ev.total * 100.0 * 100.0 ) / 100.0;
+    
+                                        BTN_LABELS.text(`Uploading file (${PERCENTAGE} %)...`);
+                                    }
+                                    else {
+                                        BTN_LABELS.text(`Uploading file...`);
+                                    }
+                                };
+                            }
+
+                            return XHR;
+                        },
+
+                        beforeSend: (jqXHR: JQueryXHR, settings: JQueryAjaxSettings) => {
+                            BTNS.addClass('disabled');
+
+                            BTN_LABELS.text(`Uploading file...`);
+                        },
+
+                        complete: () => {
+                            BTNS.removeClass('disabled');
+
+                            BTN_LABELS.text('Add file');
+                        }
                     });
                 }
             });
@@ -825,6 +873,6 @@ namespace SimpleWhiteboard.Whiteboard {
             if ('' === jQuery.trim( USERNAME_FIELD.val() )) {
                 USERNAME_FIELD.focus();
             }
-        });        
+        });
     });
 }

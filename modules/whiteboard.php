@@ -29,7 +29,7 @@ defined('SW_INDEX') or die();
                 <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
                 <span>Editor</span>
             </a></li>
-            <li title="CTRL + F"><a data-toggle="tab" href="#sw-files-2" class="sw-tab sw-files-tab visible-xs visible-sm" id="sw-files-tab-1">
+            <li class="visible-xs visible-sm" title="CTRL + F"><a data-toggle="tab" href="#sw-files-2" class="sw-tab sw-files-tab" id="sw-files-tab-1">
                 <i class="fa fa-archive" aria-hidden="true"></i>
                 <span>Files</span>
             </a></li>

@@ -55,23 +55,22 @@ defined('SW_INDEX') or die();
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="https://github.com/mkloubert/simple-whiteboard" target="_blank">Simple Whiteboard</a>
-
+          <a class="navbar-brand" href="https://github.com/mkloubert/simple-whiteboard" target="_blank" title="Powered by simple-whiteboard">
+            <?= htmlentities( sw_board_name() ) ?>
+          </a>
         </div>
         
-        <a class="btn btn-primary navbar-btn navbar-right" id="sw-save-btn" title="CTRL + S">
-          <i class="fa fa-floppy-o" aria-hidden="true"></i>
-          <span>Save</span>
-        </a>
-
-        <form class="navbar-form navbar-right">
-          <div class="form-group">
-            <input type="text" class="form-control" placeholder="Your name" id="sw-username">
-          </div>
-        </form>
-
         <div class="collapse navbar-collapse" id="sw-navbar-top-collapse">
-          <ul class="nav navbar-nav"></ul>
+          <a class="btn btn-primary navbar-btn navbar-right" id="sw-save-btn" title="CTRL + S">
+            <i class="fa fa-floppy-o" aria-hidden="true"></i>
+            <span>Save</span>
+          </a>
+
+          <form class="navbar-form navbar-right">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="Your name" id="sw-username">
+            </div>
+          </form>
         </div>
       </div>
     </nav>
