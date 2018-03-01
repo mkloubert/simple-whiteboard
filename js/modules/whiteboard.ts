@@ -571,7 +571,7 @@ namespace SimpleWhiteboard.Whiteboard {
         }
     }
 
-    function updateViewAndEditor(content: ContentValue, selectBoard = false) {
+    function updateViewAndEditor(content: ContentValue, selectBoard = false) {        
         if (content) {
             const CONTENT_TO_SET = toStringSafe(content.content);
 
@@ -582,12 +582,13 @@ namespace SimpleWhiteboard.Whiteboard {
 
             updateEditorDirtyState();         
         }
-
+        
         if (selectBoard) {
             showBoard();
         }
-        
-        updateView(content);
+        else {
+            updateView(content);
+        }
     }
 
     function uploadAndInsertFile(file: File) {
