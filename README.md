@@ -74,27 +74,7 @@ AuthUserFile "/etc/apache2/.htpasswd"
 </RequireAny>
 ```
 
-### Board name
-
-The [MySQL dump](https://github.com/mkloubert/simple-whiteboard/blob/master/_res/mysql5.dump.sql) inserts an initial entry in the `boards` table.
-
-There you can define a custom name in the `name` column.
-
-### Additional boards
-
-You can add additional boards to `boards` table.
-
-To access one of these additional boards, simply use the value from `id` column and access them by using `b` query parameter in URL: `https://example.com/whiteboard/?b=<ID-OF-THE-BOARD>`.
-
-### Shortcuts
-
-| Shortcut | Description |
-| ---- | --------- |
-| `CTRL + B` | Select `Board` tab. |
-| `CTRL + E` | Select `Editor` tab. |
-| `CTRL + S` | Save the current content of editor and show it in board tab. |
-
-### Markdown
+## Markdown
 
 The application uses [showndown](https://github.com/showdownjs/showdown) as [Markdown](https://en.wikipedia.org/wiki/Markdown) engine with the following [options](https://github.com/showdownjs/showdown#valid-options):
 
@@ -108,9 +88,29 @@ The application uses [showndown](https://github.com/showdownjs/showdown) as [Mar
 }
 ```
 
-### Customizations
+## Shortcuts
 
-#### CSS
+| Shortcut | Description |
+| ---- | --------- |
+| `CTRL + B` | Select `Board` tab. |
+| `CTRL + E` | Select `Editor` tab. |
+| `CTRL + S` | Save the current content of editor and show it in board tab. |
+
+## Customizations
+
+### Board name
+
+The [MySQL dump](https://github.com/mkloubert/simple-whiteboard/blob/master/_res/mysql5.dump.sql) inserts an initial entry in the `boards` table.
+
+There you can define a custom name in the `name` column.
+
+### Additional boards
+
+You can add additional boards to `boards` table.
+
+To access one of these additional boards, simply use the value from `id` column and access them by using `b` query parameter in URL: `https://example.com/whiteboard/?b=<ID-OF-THE-BOARD>`.
+
+### CSS
 
 The [bootstrap.min.css](https://github.com/mkloubert/simple-whiteboard/blob/master/css/bootstrap.min.css) is taken from [Bootswatch](https://bootswatch.com/3/).
 You can replace it with any of the other templates or another compatible one, like the default one from [Bootstrap 3](https://getbootstrap.com/docs/3.3/).
