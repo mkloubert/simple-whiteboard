@@ -9,7 +9,8 @@
 
         "ignore": [
             "js/**/*.ts",
-            "ts/**/*"
+            "ts/**/*",
+            "_res/**/*"
         ],
 
         "packages": [

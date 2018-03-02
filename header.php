@@ -28,6 +28,7 @@ defined('SW_INDEX') or die();
     <link rel="stylesheet" href="./css/mermaid/mermaid.css">
     <link rel="stylesheet" href="./css/mermaid/mermaid.dark.css">
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/custom.css">
 
     <!--[if lt IE 9]>
       <script src="./js/html5shiv.min.js"></script>
