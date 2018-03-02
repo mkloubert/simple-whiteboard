@@ -94,12 +94,26 @@ To access one of these additional boards, simply use the value from `id` column 
 | `CTRL + E` | Select `Editor` tab. |
 | `CTRL + S` | Save the current content of editor and show it in board tab. |
 
+### Markdown
+
+The application uses [showndown](https://github.com/showdownjs/showdown) as [Markdown](https://en.wikipedia.org/wiki/Markdown) engine with the following [options](https://github.com/showdownjs/showdown#valid-options):
+
+```json
+{
+    ghCodeBlocks: true,
+    ghCompatibleHeaderId: true,
+    simplifiedAutoLink: true,
+    strikethrough: true,
+    tables: true
+}
+```
+
 ### Customizations
 
 #### CSS
 
 The [bootstrap.min.css](https://github.com/mkloubert/simple-whiteboard/blob/master/css/bootstrap.min.css) is taken from [Bootswatch](https://bootswatch.com/3/).
-You can replace it with any other the user templates and another compatible one, like the default one from [Bootstrap 3](https://getbootstrap.com/docs/3.3/).
+You can replace it with any of the other templates or another compatible one, like the default one from [Bootstrap 3](https://getbootstrap.com/docs/3.3/).
 
 If you need additional customizations, you can edit [custom.css](https://github.com/mkloubert/simple-whiteboard/blob/master/css/custom.css) file. 
 
