@@ -80,11 +80,11 @@ The application uses [showndown](https://github.com/showdownjs/showdown) as [Mar
 
 ```json
 {
-    ghCodeBlocks: true,
-    ghCompatibleHeaderId: true,
-    simplifiedAutoLink: true,
-    strikethrough: true,
-    tables: true
+    "ghCodeBlocks": true,
+    "ghCompatibleHeaderId": true,
+    "simplifiedAutoLink": true,
+    "strikethrough": true,
+    "tables": true
 }
 ```
 
