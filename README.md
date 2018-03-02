@@ -76,7 +76,7 @@ AuthUserFile "/etc/apache2/.htpasswd"
 
 ### Board name
 
-The [MySQL dump](https://github.com/mkloubert/simple-whiteboard/blob/master/_res/mysql5.dump.sql) inserts an initial entry in the `boards`.
+The [MySQL dump](https://github.com/mkloubert/simple-whiteboard/blob/master/_res/mysql5.dump.sql) inserts an initial entry in the `boards` table.
 
 There you can define a custom name in the `name` column.
 
@@ -104,8 +104,6 @@ You can replace it with any other the user templates and another compatible one,
 If you need additional customizations, you can edit [custom.css](https://github.com/mkloubert/simple-whiteboard/blob/master/css/custom.css) file. 
 
 ## Support and contribute
-
-## Support and contribute [[&uarr;](#table-of-contents)]
 
 If you like the application, you can support the project by sending a [donation via PayPal](https://paypal.me/MarcelKloubert) to [me](https://github.com/mkloubert).
 
